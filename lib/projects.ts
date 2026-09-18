@@ -29,8 +29,8 @@ export const PROJECTS: Project[] = [
     name: "Prosenos",
     description:
       "Watch live football and NBA scores in real time. Built with FastAPI and web scraping.",
-    status: "In Dev",
-    url: "https://github.com/rober0xf/prosenos",
+    status: ProjectStatus.online,
+    url: "https://prosenos-frontend.vercel.app/",
     language: Language.python,
   },
   {

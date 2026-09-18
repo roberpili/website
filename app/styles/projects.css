@@ -123,11 +123,11 @@
 }
 
 .status-online {
-    background-color: #0d9488;
+    background-color: #2563eb;
 }
 
 .status-online-text {
-    color: #0f766e;
+    color: #1d4ed8;
 }
 
 .status-in-dev {
