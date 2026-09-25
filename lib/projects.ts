@@ -6,7 +6,7 @@ export const PROJECTS: Project[] = [
     description:
       "A payment notification app developed in Gin that sends notifications through email using the SMTP protocol.",
     status: ProjectStatus.done,
-    url: "https://github.com/rober0xf/notifier",
+    url: "https://github.com/roberpili/notifier",
     language: Language.go,
   },
   {
@@ -14,7 +14,7 @@ export const PROJECTS: Project[] = [
     description:
       "Predict your MMA picks. The API is developed in FastAPI and the model PyTorch.",
     status: ProjectStatus.done,
-    url: "https://github.com/rober0xf/utracker",
+    url: "https://github.com/roberpili/utracker",
     language: Language.python,
   },
   {
@@ -22,7 +22,7 @@ export const PROJECTS: Project[] = [
     description:
       "A Counter-Strike 1.6 mix plugin developed for playing matches with friends.",
     status: ProjectStatus.done,
-    url: "https://github.com/rober0xf/mix-plugin-cs1.6",
+    url: "https://github.com/roberpili/mix-plugin-cs1.6",
     language: Language.pawn,
   },
   {
@@ -37,7 +37,7 @@ export const PROJECTS: Project[] = [
     name: "rb",
     description: "My personal CLI Assistant.",
     status: "In Dev",
-    url: "https://github.com/rober0xf/rb",
+    url: "https://github.com/roberpili/rb",
     language: Language.go,
   },
 ];

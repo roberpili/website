@@ -10,7 +10,7 @@ export const FooterComponent = () => {
   const icons: SocialIcon[] = [
     {
       name: "Github",
-      url: "https://github.com/rober0xf",
+      url: "https://github.com/roberpili",
       icon: "fa-brands fa-github",
     },
     {
