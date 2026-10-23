@@ -6,7 +6,7 @@ export async function GET() {
 
   return NextResponse.json(song, {
     headers: {
-      "Cache-Cotrol": "no-store",
+      "Cache-Control": "no-store",
     },
   });
 }

@@ -26,13 +26,28 @@ Open http://localhost:3000.
 
 ### Environment
 
-The music widget reads a Last.fm recent-tracks URL from `URL` in `.env`:
+The music widget reads a Last.fm recent-tracks URL from `URL`:
 
 ```
 URL="https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&format=json&limit=1&user=<user>&api_key=<key>"
 ```
 
+- `bun dev` loads it from `.env`.
+- Local Worker preview loads it from `.dev.vars` (add `NEXTJS_ENV=development` there too).
+- Production needs `URL` set as a secret in the Cloudflare dashboard.
+
 If it is missing or the request fails, `/api/recent-song` returns `null` and the widget is hidden.
+
+## Deploying
+
+The site runs on Cloudflare Workers through `@opennextjs/cloudflare`. Worker settings live in `wrangler.jsonc`.
+
+```bash
+bun run preview   # build and run in the Workers runtime locally
+bun run deploy    # build and deploy to Cloudflare
+```
+
+Log in first with `bunx wrangler login`, or set `CLOUDFLARE_API_TOKEN` in CI.
 
 ## Adding content
 
@@ -42,7 +57,7 @@ If it is missing or the request fails, `/api/recent-song` returns `null` and the
 
 ## Scripts
 
-`bun dev` · `bun build` · `bun start` · `bun lint`
+`bun dev` · `bun build` · `bun start` · `bun run preview` · `bun run deploy` · `bun lint`
 
 ## Structure
 
