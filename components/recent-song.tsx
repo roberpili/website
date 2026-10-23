@@ -32,16 +32,13 @@ export const RecentSongComponent = () => {
     };
   }, []);
 
-  const track = data?.recenttracks?.track?.[0];
+  const track = data;
   if (!track) return null;
 
-  const isPlaying = track["@attr"]?.nowplaying === "true";
-  const albumArt =
-    track.image?.find((img) => img.size === "medium")?.["#text"] ||
-    track.image?.find((img) => img.size === "small")?.["#text"] ||
-    "";
-  const artistName = track.artist["#text"];
-  const albumName = track.album["#text"];
+  const isPlaying = track.nowPlaying;
+  const albumArt = track.image;
+  const artistName = track.artist;
+  const albumName = track.album;
 
   return (
     <section className="recent-song" aria-labelledby="recent-song-title">

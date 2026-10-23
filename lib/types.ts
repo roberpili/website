@@ -55,30 +55,32 @@ export interface MarkdownPostMetadataAndSlug {
 }
 
 // SONG
-export interface AlbumImage {
-  "#text": string;
-  size: "small" | "medium" | "large" | "extralarge";
-}
-
 export interface LastSong {
   name: string;
-  artist: { "#text": string; mbid?: string };
-  album: { "#text": string; mbid?: string };
+  artist: { "#text": string };
+  album: { "#text": string };
   url: string;
-  image: AlbumImage[];
-  date?: {
-    uts: string;
+  image: {
+    size: string;
     "#text": string;
-  };
+  }[];
   "@attr"?: {
     nowplaying?: string;
   };
 }
 
-export interface RecentSongs {
-  track: LastSong[];
+export interface LastFmResponse {
+  recenttracks: {
+    track: LastSong[];
+  };
 }
 
+// exposed to the frontend
 export interface SongResponse {
-  recenttracks: RecentSongs;
+  name: string;
+  artist: string;
+  album: string;
+  url: string;
+  image: string;
+  nowPlaying: boolean;
 }
