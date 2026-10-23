@@ -1,36 +1,49 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# rober
 
-## Getting Started
+Personal website — backend engineering, articles and projects.
+Built with Next.js (App Router), React, TypeScript, MDX and plain CSS.
 
-First, run the development server:
+## Routes
+
+| Route | Content |
+| --- | --- |
+| `/` | Intro, what I'm doing now, recent spotify track, featured projects |
+| `/blog` | List of articles from `posts/` |
+| `/blog/[slug]` | Article rendered from MDX with Prism highlighting |
+| `/projects` | Projects from `lib/projects.ts` |
+| `/books` | Reading list from `lib/books.ts` |
+
+## Getting started
+
+Requires [Bun](https://bun.sh) (recommended) or Node.js.
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
+bun install
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Environment
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The music widget reads a Last.fm recent-tracks URL from `URL` in `.env`:
 
-## Learn More
+```
+URL="https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&format=json&limit=1&user=<user>&api_key=<key>"
+```
 
-To learn more about Next.js, take a look at the following resources:
+If it is missing or the request fails, `/api/recent-song` returns `null` and the widget is hidden.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Adding content
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- **Posts** — add `posts/<slug>.mdx`; it shows up on `/blog` automatically. Required frontmatter: `title`, `topic`, `imgUrl`, `publishedAt`.
+- **Projects** — edit `lib/projects.ts`.
+- **Books** — edit `lib/books.ts` and put covers in `public/books/`.
 
-## Deploy on Vercel
+## Scripts
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+`bun dev` · `bun build` · `bun start` · `bun lint`
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Structure
+
+`app/` routes, API and styles · `components/` UI · `lib/` data and helpers · `posts/` MDX articles · `public/` images and static assets.
