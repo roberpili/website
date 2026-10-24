@@ -32,22 +32,20 @@ The music widget reads a Last.fm recent-tracks URL from `URL`:
 URL="https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&format=json&limit=1&user=<user>&api_key=<key>"
 ```
 
-- `bun dev` loads it from `.env`.
-- Local Worker preview loads it from `.dev.vars` (add `NEXTJS_ENV=development` there too).
-- Production needs `URL` set as a secret in the Cloudflare dashboard.
+Put it in `.env` for local development, and in the Vercel project's environment variables for production.
 
 If it is missing or the request fails, `/api/recent-song` returns `null` and the widget is hidden.
 
 ## Deploying
 
-The site runs on Cloudflare Workers through `@opennextjs/cloudflare`. Worker settings live in `wrangler.jsonc`.
+Deployed on Vercel. Import the repository in the Vercel dashboard — the defaults work (`bun install`, `bun run build`). Add the `URL` environment variable in the project settings.
+
+Or deploy from the CLI:
 
 ```bash
-bun run preview   # build and run in the Workers runtime locally
-bun run deploy    # build and deploy to Cloudflare
+bunx vercel
+bunx vercel --prod
 ```
-
-Log in first with `bunx wrangler login`, or set `CLOUDFLARE_API_TOKEN` in CI.
 
 ## Adding content
 
@@ -57,7 +55,7 @@ Log in first with `bunx wrangler login`, or set `CLOUDFLARE_API_TOKEN` in CI.
 
 ## Scripts
 
-`bun dev` · `bun build` · `bun start` · `bun run preview` · `bun run deploy` · `bun lint`
+`bun dev` · `bun build` · `bun start` · `bun lint`
 
 ## Structure
 
