@@ -1,0 +1,154 @@
+---
+title: "Inconsistent timezone between backends"
+topic: "Backend"
+imgUrl: "/post-images/python-timezone.png"
+publishedAt: "2026-11-19"
+---
+
+## Two-Hour Kickoff: Debugging a Production Timezone Bug
+
+I built a small [sports match tracker](http://github.com/roberpili/prosenos) that fetches match data from an external provider, plus a frontend that displays live scores and kickoff times.
+
+Everything worked locally. In production, football kickoff times were consistently two hours earlier than they should have been.
+
+This is how I found the cause and how I now handle datetimes from an external source.
+
+### The symptom
+
+I logged the kickoff value the parser received, in both environments, before doing anything else:
+
+```text
+local:   backend raw: '11-11-2026 15:00'  ->  parsed utc: 18:00+00:00
+render:  backend raw: '11-11-2026 13:00'  ->  parsed utc: 16:00+00:00
+```
+
+Same match, two hours apart. The frontend formatted the value in Argentina time, so users saw the wrong kickoff hour.
+
+The strange part was that the NBA data was correct in both environments.
+
+### First guesses (all wrong)
+
+1. **Render was running in a different timezone.** I set the server timezone to Argentina. It did not fix it.
+2. **The frontend was formatting the date incorrectly.** I moved the conversion around and tried sending UTC so the frontend could handle the Argentina conversion. It did not fix it either, and the frontend turned out to be fine.
+3. **The provider was returning UTC.** I assumed the timestamp only needed to be passed through.
+
+What finally pointed me in the right direction was comparing the raw provider responses for the two sports.
+
+### NBA and football were not the same kind of timestamp
+
+The NBA provider returns an ISO 8601 timestamp with an explicit timezone:
+
+```json
+{
+  "date": "2026-11-11T23:30:00Z"
+}
+```
+
+That value is unambiguous. `2026-11-11T23:30:00Z` means 23:30 UTC, regardless of whether the server runs in Argentina, the US, or anywhere else.
+
+The football provider returns a naive timestamp:
+
+```json
+{
+  "start_time": "11-11-2026 15:00"
+}
+```
+
+No timezone, no offset. Just "15:00".
+
+A naive datetime is not a moment in time. It's a clock reading without a location. Before converting it to UTC, I had to answer one question:
+
+> 15:00 in which timezone?
+
+I had assumed Argentina, and my parser hardcoded that:
+
+```python
+from datetime import UTC, datetime
+from zoneinfo import ZoneInfo
+
+ARGENTINA_TZ = ZoneInfo("America/Argentina/Buenos_Aires")
+
+
+def parse_futbol_kickoff(value: str) -> datetime:
+    local = datetime.strptime(value, "%d-%m-%Y %H:%M").replace(tzinfo=ARGENTINA_TZ)
+    return local.astimezone(UTC)
+```
+
+The important part is `.replace(tzinfo=...)` before `.astimezone(UTC)`. Calling `.astimezone()` on a naive datetime silently assumes the machine's local timezone, which is exactly the kind of dependency I wanted to avoid.
+
+The parser itself was consistent. The same code ran in both environments. The difference was in the string it received.
+
+### Why the server timezone didn't matter
+
+Once the source timezone is explicit, the server's own timezone is irrelevant. A server anywhere should produce the same UTC result. That is why setting Render's timezone to Argentina didn't help: the conversion should never depend on it.
+
+### What actually caused the difference
+
+The source site localizes `start_time` to the requester's location, probably by IP, and doesn't say which timezone it used.
+
+My machine is in Argentina (UTC-3). My Render service runs in Ohio, which is US East (UTC-5 in November). The 2-hour gap between those two zones was exactly the bug: my parser assumed Argentina time for a string that was actually New York time on Render.
+
+### The fix: make the source timezone configurable
+
+I made the source timezone an environment variable and set it per environment:
+
+```python
+import os
+from datetime import UTC, datetime
+from zoneinfo import ZoneInfo
+
+SOURCE_TZ = ZoneInfo(os.environ.get("SOURCE_TZ", "America/Argentina/Buenos_Aires"))
+
+
+def parse_futbol_kickoff(value: str) -> datetime:
+    return (
+        datetime.strptime(value, "%d-%m-%Y %H:%M")
+        .replace(tzinfo=SOURCE_TZ)
+        .astimezone(UTC)
+    )
+```
+
+- **Local:** `SOURCE_TZ` defaults to `America/Argentina/Buenos_Aires`.
+- **Render:** `SOURCE_TZ=America/New_York`, set in the dashboard.
+
+Now the same match gives the same instant in both environments:
+
+```text
+local:   backend raw: '11-11-2026 15:00'  ->  parsed utc: 18:00+00:00
+render:  backend raw: '11-11-2026 13:00'  ->  parsed utc: 18:00+00:00
+```
+
+I used IANA zone names and not a hardcoded "+2 hours" because `zoneinfo` handles daylight saving time. The US changes its clocks and Argentina doesn't, so the gap between Ohio and Argentina shrinks to 1 hour in summer, and a fixed offset would have been wrong again.
+
+### One clear rule for the rest of the app
+
+- The backend returns **UTC ISO 8601** strings for kickoff times.
+- The frontend is responsible for displaying them in the user's timezone.
+
+Example response:
+
+```json
+{
+  "kickoff": "2026-11-11T18:00:00+00:00"
+}
+```
+
+On the frontend, format with an explicit timezone instead of relying on the browser or device default:
+
+```ts
+const formatter = new Intl.DateTimeFormat("es-AR", {
+  timeZone: "America/Argentina/Buenos_Aires",
+  hour: "2-digit",
+  minute: "2-digit",
+});
+
+formatter.format(new Date(kickoff));
+```
+
+### What I learnt
+
+- When two environments disagree, compare the inputs before the logic: My parser was correct. The string it received was already different.
+- A timestamp without a timezone is just a clock reading: `15:00` means nothing until you know whose 15:00 it is.
+- Scraped data can depend on where you request it from: The same endpoint returned different local times for Argentina and Ohio.
+- Name the source timezone explicitly and use IANA zones: `zoneinfo` handles DST, and a hardcoded offset would have broken again in March.
+- Keep UTC in the backend and format at the edges: The server returns UTC ISO 8601, and the frontend decides how to display it.
